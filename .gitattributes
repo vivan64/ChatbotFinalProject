@@ -1,2 +1,63 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+import spacy
+from spacy import displacy
+from spacy.matcher import Matcher
+
+nlp = spacy.load("en_core_web_sm")
+matcher = Matcher(nlp.vocab)
+
+# Define patterns for the matcher
+patterns = [
+    {"label": "greeting", "pattern": [{"LOWER": "hello"}, {"LOWER": "there"}]},
+    {"label": "goodbye", "pattern": [{"LOWER": "bye"}]},
+    {"label": "thanks", "pattern": [{"LOWER": "thanks"}, {"LOWER": "a"}, {"LOWER": "lot"}]},
+    {"label": "weather", "pattern": [{"LOWER": "weather"}]},
+    {"label": "restaurant", "pattern": [{"LOWER": "restaurant"}]},
+    {"label": "movie", "pattern": [{"LOWER": "movie"}]}
+]
+matcher.add("chatbot", None, *patterns)
+
+# Define functions to handle different types of questions
+def handle_greeting(doc):
+    return "Hello! How can I assist you today?"
+
+def handle_goodbye(doc):
+    return "Goodbye! Have a great day."
+
+def handle_thanks(doc):
+    return "You're welcome! Is there anything else I can help you with?"
+
+def handle_weather(doc):
+    return "I'm sorry, I don't have weather information at the moment."
+
+def handle_restaurant(doc):
+    return "There are several great restaurants in the area. Can you give me a cuisine preference?"
+
+def handle_movie(doc):
+    return "There are several movies playing now. Do you have a genre preference?"
+
+# Define the chatbot function
+def chatbot(text):
+    doc = nlp(text)
+    matches = matcher(doc)
+    for match_id, start, end in matches:
+        label = nlp.vocab.strings[match_id]
+        if label == "greeting":
+            return handle_greeting(doc)
+        elif label == "goodbye":
+            return handle_goodbye(doc)
+        elif label == "thanks":
+            return handle_thanks(doc)
+        elif label == "weather":
+            return handle_weather(doc)
+        elif label == "restaurant":
+            return handle_restaurant(doc)
+        elif label == "movie":
+            return handle_movie(doc)
+    return "I'm sorry, I didn't understand your question."
+
+# Test the chatbot
+print(chatbot("Hello there!"))
+print(chatbot("What's the weather like today?"))
+print(chatbot("Recommend a good restaurant nearby."))
+print(chatbot("Thanks a lot for your help."))
+print(chatbot("Goodbye!"))
